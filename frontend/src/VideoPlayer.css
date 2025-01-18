@@ -1,0 +1,389 @@
+/* ---------------------- */
+/* Global / Base Styles   */
+/* ---------------------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* ---------------------- */
+/* Container & Video      */
+/* ---------------------- */
+
+.video-container {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  display: flex;
+  justify-content: center;
+  margin-inline: auto;
+  background-color: black;
+}
+
+.video-container.theater,
+.video-container.full-screen {
+  max-width: initial;
+  width: 100%;
+}
+
+.video-container.theater {
+  max-height: 90vh;
+}
+
+.video-container.full-screen {
+  max-height: 100vh;
+}
+
+video {
+  width: 100%;
+}
+
+/* ---------------------- */
+/* Controls Container     */
+/* ---------------------- */
+
+.video-controls-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: white;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+}
+
+.video-controls-container::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, .75), transparent);
+  width: 100%;
+  aspect-ratio: 6 / 1;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.video-container:hover .video-controls-container,
+.video-container:focus-within .video-controls-container,
+.video-container.paused .video-controls-container {
+  opacity: 1;
+}
+
+.video-controls-container .controls {
+  display: flex;
+  gap: .5rem;
+  padding: .25rem;
+  align-items: center;
+}
+
+.video-controls-container .controls button {
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0;
+  height: 30px;
+  width: 30px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: .85;
+  transition: opacity 150ms ease-in-out;
+}
+
+.video-controls-container .controls button:hover {
+  opacity: 1;
+}
+
+/* ---------------------- */
+/* Play / Pause Icons     */
+/* ---------------------- */
+
+.video-container.paused .pause-icon {
+  display: none;
+}
+
+.video-container:not(.paused) .play-icon {
+  display: none;
+}
+
+/* ---------------------- */
+/* View Mode Icons        */
+/* ---------------------- */
+
+.video-container.theater .tall {
+  display: none;
+}
+
+.video-container:not(.theater) .wide {
+  display: none;
+}
+
+.video-container.full-screen .open {
+  display: none;
+}
+
+.video-container:not(.full-screen) .close {
+  display: none;
+}
+
+/* ---------------------- */
+/* Volume Icons           */
+/* ---------------------- */
+
+.volume-high-icon,
+.volume-low-icon,
+.volume-muted-icon {
+  display: none;
+}
+
+.video-container[data-volume-level="high"] .volume-high-icon {
+  display: block;
+}
+
+.video-container[data-volume-level="low"] .volume-low-icon {
+  display: block;
+}
+
+.video-container[data-volume-level="muted"] .volume-muted-icon {
+  display: block;
+}
+
+.volume-container {
+  display: flex;
+  align-items: center;
+}
+
+.volume-slider {
+  width: 0;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: width 150ms ease-in-out, transform 150ms ease-in-out;
+}
+
+.volume-container:hover .volume-slider,
+.volume-slider:focus-within {
+  width: 100px;
+  transform: scaleX(1);
+}
+
+/* ---------------------- */
+/* Duration / Captions    */
+/* ---------------------- */
+
+.duration-container {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  flex-grow: 1;
+}
+
+.video-container.captions .captions-btn {
+  border-bottom: 3px solid red;
+}
+
+/* Speed Button Wider */
+.video-controls-container .controls button.wide-btn {
+  width: 50px;
+}
+
+/* ---------------------- */
+/* Timeline Styles        */
+/* ---------------------- */
+
+.timeline-container {
+  height: 7px;
+  margin-inline: .5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.timeline {
+  background-color: rgba(100, 100, 100, .5);
+  height: 3px;
+  width: 100%;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: calc(100% - var(--preview-position) * 100%);
+  background-color: rgb(150, 150, 150);
+  display: none;
+}
+
+.timeline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: calc(100% - var(--progress-position) * 100%);
+  background-color: red;
+}
+
+.timeline .thumb-indicator {
+  --scale: 0;
+  position: absolute;
+  transform: translateX(-50%) scale(var(--scale));
+  height: 200%;
+  top: -50%;
+  left: calc(var(--progress-position) * 100%);
+  background-color: red;
+  border-radius: 50%;
+  transition: transform 150ms ease-in-out;
+  aspect-ratio: 1 / 1;
+}
+
+.video-container.scrubbing .timeline::before,
+.timeline-container:hover .timeline::before {
+  display: block;
+}
+
+.video-container.scrubbing .thumb-indicator,
+.timeline-container:hover .thumb-indicator {
+  --scale: 1;
+}
+
+.video-container.scrubbing .timeline,
+.timeline-container:hover .timeline {
+  height: 100%;
+}
+
+/* ---------------------- */
+/* Preview Image (fade in/out) */
+/* ---------------------- */
+
+.timeline .preview-img {
+  position: absolute;
+  height: 80px;
+  aspect-ratio: 16 / 9;
+  top: -1rem;
+  transform: translate(-50%, -100%);
+  left: calc(var(--preview-position) * 100%);
+  
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: .25rem;
+  pointer-events: none;
+}
+
+.video-container.scrubbing .preview-img,
+.timeline-container:hover .preview-img {
+  display: block;
+  opacity: 1;
+}
+
+/* ---------------------- */
+/* Thumbnail Image        */
+/* ---------------------- */
+
+.thumbnail-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.video-container.scrubbing .thumbnail-img {
+  display: block;
+}
+
+/* ---------------------- */
+/* Animated "Traveling" Rainbow Border */
+/* ------------------------------------------------
+   We'll simulate a line traveling around the edges by:
+   1) Placing a pseudo-element ::before behind the .preview-img
+   2) Filling it with a repeating linear gradient of rainbow stripes
+   3) Animate background-position so the stripes shift diagonally
+   4) Mask out the center to only show a ring ("border" effect)
+*/
+
+.preview-img {
+  position: relative;
+  z-index: 0; /* to ensure the pseudo-element is behind the image */
+  border: none; /* remove any default border */
+}
+
+/* Pseudo-element that forms the animated rainbow ring */
+.preview-img::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: calc(100% + 6px);
+  height: calc(100% + 6px);
+  z-index: -1;
+  border-radius: .25rem;
+  pointer-events: none;
+
+  /* 
+    1) Repeating linear gradient with stripes of rainbow colors
+    2) We'll animate background-position to make it look like
+       the stripes are traveling around the border. 
+  */
+  background: repeating-linear-gradient(
+    45deg,
+    red 0%,
+    red 5%,
+    orange 5%,
+    orange 10%,
+    yellow 10%,
+    yellow 15%,
+    green 15%,
+    green 20%,
+    blue 20%,
+    blue 25%,
+    indigo 25%,
+    indigo 30%,
+    violet 30%,
+    violet 35%
+  );
+
+  /* Let's expand the gradient so it has space to animate */
+  background-size: 400% 400%;
+
+  animation: animateRainbowBorder 3s linear infinite;
+
+  /*
+    3) Mask out the center so only a "ring" is visible (~3px thick).
+       We do it with box-sizing: border-box + some padding + the
+       mask-composite trick to subtract the inner area.
+  */
+  box-sizing: border-box;
+  padding: 3px; /* thickness of the ring */
+
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0) padding-box;
+  mask-composite: subtract;
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0) padding-box;
+  -webkit-mask-composite: destination-out;
+}
+
+/* Keyframes: shift the background diagonally */
+@keyframes animateRainbowBorder {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 400% 400%;
+  }
+}
+

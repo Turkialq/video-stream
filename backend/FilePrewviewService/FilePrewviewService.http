@@ -1,0 +1,6 @@
+@FilePrewviewService_HostAddress = http://localhost:5298
+
+GET {{FilePrewviewService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
