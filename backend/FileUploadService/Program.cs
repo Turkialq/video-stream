@@ -1,13 +1,12 @@
 using Microsoft.Extensions.Options;
-using Models.MongoSettings;
-using Models.RabbitSettings;
 using MongoDB.Driver;
 using Services.RabbitManager;
-using VideoUploadService.Services;
+using FileUploadService.Models;
+using FileUploadService.Config;
+using FileUploadService.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Configuration
@@ -15,11 +14,10 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables(); // If you want overrides from env vars
 
-// --------------------------------------------------
-// 2) Bind our Settings classes to Configuration
-// --------------------------------------------------
+
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
 builder.Services.Configure<RabbitSettings>(builder.Configuration.GetSection("RabbitSettings"));
+builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("StorageSettings"));
 
 // --------------------------------------------------
 // 3) Setup MongoDB
@@ -41,11 +39,16 @@ builder.Services.AddSingleton(sp =>
 // 4) Setup RabbitMQ via RabbitManager
 // --------------------------------------------------
 builder.Services.AddSingleton<IRabbitManager, RabbitManager>();
+builder.Services.AddSingleton<IDatabaseApplicationContext, DatabaseApplicationContext>();
+
+builder.Services.AddMongoCollectionFromContext<FileCollection>(ctx => ctx.Files);
+builder.Services.AddMongoCollectionFromContext<OutboxMessage>(ctx => ctx.OutboxMessages);
+
 
 // --------------------------------------------------
 // 5) Register our custom services
 // --------------------------------------------------
-builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddScoped<FileUploadService.Services.IFileUploadService, FileUploadService.Services.FileUploadService>();
 
 
 

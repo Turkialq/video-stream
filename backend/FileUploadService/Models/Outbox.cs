@@ -1,12 +1,25 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace FileUploadService.Models{
 
 public class OutboxMessage
 {
-    public string Id { get; set; } = default!;
-    public string EventType { get; set; } = default!;
-    public string PayloadJson { get; set; } = default!;
-    public DateTime CreatedAt { get; set; }
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; } = string.Empty;
 
-    public bool IsPublished { get; set; } // false => not published, true => published
+    [BsonElement("eventType")]
+    public string EventType { get; set; } = string.Empty;
+
+     [BsonElement("payloadJson")]
+    public string PayloadJson { get; set; } = string.Empty;
+
+    [BsonElement("uploadedAt")]
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime CreatedAt { get; set; }
+            
+    [BsonElement("isPublished")]
+    public bool IsPublished { get; set; }  = false;
 }
 }

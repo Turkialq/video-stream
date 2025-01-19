@@ -6,18 +6,23 @@ namespace FileUploadService.Services
 {
     public class FileUploadService : IFileUploadService
     {
-        private readonly IMongoDatabase _db;
+       
+        private readonly IMongoCollection<FileCollection> _fileCollection;
+        private readonly IMongoCollection<OutboxMessage> _outboxCollection;
+      
 
-        public FileUploadService(IMongoDatabase db)
+        public FileUploadService(IMongoCollection<FileCollection> collection, IMongoCollection<OutboxMessage> outboxCollection)
         {
-            _db = db;
+            _fileCollection = collection;
+            _outboxCollection = outboxCollection;
         }
+        
 
-        public async Task<string> UploadVideoAsync(IFormFile file, string? title)
+        public async Task<string> UploadVideoAsync(IFormFile file, string title)
         {
             // 1) Store file on disk
             var videoId = Guid.NewGuid().ToString("N");
-            var filePath = Path.Combine("videos", $"{videoId}.mp4");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "videos",$"{videoId}.mp4");
             Directory.CreateDirectory("videos");
             using (var stream = File.Create(filePath))
             {
@@ -25,7 +30,6 @@ namespace FileUploadService.Services
             }
 
             // 2) Insert video doc into Mongo
-            var videos = _db.GetCollection<FileCollection>("Videos");
             var videoDoc = new FileCollection
             {
                 Id = videoId,
@@ -33,10 +37,9 @@ namespace FileUploadService.Services
                 Title = title,
                 UploadedAt = DateTime.UtcNow
             };
-            await videos.InsertOneAsync(videoDoc);
+            await _fileCollection.InsertOneAsync(videoDoc);
 
             // 3) Insert outbox message
-            var outbox = _db.GetCollection<OutboxMessage>("Outbox");
             var outboxMsg = new OutboxMessage
             {
                 Id = Guid.NewGuid().ToString("N"),
@@ -45,11 +48,11 @@ namespace FileUploadService.Services
                 {
                     VideoId = videoId,
                     Title = title,
-                    FilePath = filePath
+                    FilePath = filePath,
                 }),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
             };
-            await outbox.InsertOneAsync(outboxMsg);
+            await _outboxCollection.InsertOneAsync(outboxMsg);
 
             return videoId;
         }
