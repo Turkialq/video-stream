@@ -9,12 +9,69 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
-
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
+  mongodb1:
+    image: mongo:4.4
+    container_name: mongodb1
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+    command: ["mongod", "--replSet", "rs0"]
+  mongodb2:
+    image: mongo:4.4
+    container_name: mongodb2
+    ports:
+      - "27018:27017"
+
+    command: ["mongod", "--replSet", "rs0"]
+  mongodb3:
+    image: mongo:4.4
+    container_name: mongodb3
+    ports:
+      - "27019:27017"
+    command: ["mongod", "--replSet", "rs0"]
+
+  mongo-init-replica:
+    image: mongo:4.4
+    depends_on:
+      - mongodb1
+      - mongodb2
+      - mongodb3
+    command:
+      - /bin/bash
+      - -c
+      - |
+        sleep 15
+        echo "Initiating the 3-node replica set..."
+        mongo --host mongodb1:27017 --eval '
+          rs.initiate({
+            _id: "rs0",
+            members: [
+              { _id: 0, host: "mongodb1:27017" },
+              { _id: 1, host: "mongodb2:27017" },
+              { _id: 2, host: "mongodb3:27017" }
+            ]
+          });
+          rs.status();'
+  dotnetapp:
+      build:
+        context: ./backend/FileUploadService
+        dockerfile: Dockerfile
+      ports:
+        - "8080:80"       # map port 80 in the container to 8080 on your host
+      depends_on:
+        - mongodb1
+        - mongodb2
+        - mongodb3
+        - rabbitmq
+      environment:
+        # ---- Overriding your appsettings ----
+        # (Remember double underscore for : in the key path)
+        MongoSettings__ConnectionString: "mongodb://mongodb1:27017,mongodb2:27017,mongodb3:27017/?replicaSet=rs0"
+        MongoSettings__DatabaseName: "videoDB"
+
+        RabbitSettings__HostName: "rabbitmq"
+        RabbitSettings__UserName: "user"
+        RabbitSettings__Password: "password"
+
+        StorageSettings__VideosPath: "/app/videos"
+        StorageSettings__PreviewPath: "/app/previews"
+

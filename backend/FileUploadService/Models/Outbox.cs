@@ -6,8 +6,8 @@ namespace FileUploadService.Models{
 public class OutboxMessage
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = string.Empty;
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     [BsonElement("eventType")]
     public string EventType { get; set; } = string.Empty;
