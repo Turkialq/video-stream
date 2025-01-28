@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using FileUploadService.Models;
+using Hangfire;
 
 
 namespace FileUploadService.Services
@@ -40,33 +41,35 @@ namespace FileUploadService.Services
 
             try
             {
-                // -------------- STEP 1: Write the file to disk --------------
-                Directory.CreateDirectory(rootPath); // ensure directory exists
+                Directory.CreateDirectory(rootPath); 
 
-                // If the file is very large, consider streaming in chunks, etc.
-                // For this example, we just copy in one shot:
-                using (var stream = File.Create(filePath))
+                // stream the file into disk
+
+                using (var outputStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    await file.CopyToAsync(stream);
-                }
-                fileCreated = true;  // we have created the file
+                    fileCreated = true;
 
-                // -------------- STEP 2: Insert video doc into Mongo --------------
+                    using var inputStream = file.OpenReadStream();
+
+                    // A typical buffer size is 80KB, but feel free to adjust
+                    byte[] buffer = new byte[81920];
+                    int bytesRead;
+                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                    {
+                        await outputStream.WriteAsync(buffer, 0, bytesRead);
+                    }
+                }
+
                 var videoDoc = new FileCollection
                 {
-                    // We’re using a Guid as our _id
-                    // Make sure your FileCollection model does NOT have [BsonRepresentation(BsonType.ObjectId)] on Id
-                    // See Option A from previous discussion
                     Id = videoId,
                     FilePath = filePath,
                     Title = title,
                     UploadedAt = DateTime.UtcNow
                 };
 
-                // Use the session-aware version of InsertOne
                 await _fileCollection.InsertOneAsync(session, videoDoc);
 
-                // -------------- STEP 3: Insert outbox message --------------
                 var outboxMsg = new OutboxMessage
                 {
                     Id = Guid.NewGuid(),
@@ -80,28 +83,26 @@ namespace FileUploadService.Services
                     CreatedAt = DateTime.UtcNow,
                 };
 
-                // Insert into outbox, with session
                 await _outboxCollection.InsertOneAsync(session, outboxMsg);
 
-                // -------------- COMMIT TRANSACTION --------------
                 await session.CommitTransactionAsync();
 
-                // If we get here, all three steps are good. Return the new video ID.
+                BackgroundJob.Enqueue<OutboxPublisher>(publisher =>
+                publisher.ProcessUploadedVideoAsync(videoId )
+                );
+
                 return videoDoc.Id.ToString();
             }
             catch
             {
-                // -------------- ROLLBACK / CLEANUP --------------
-                // 1) Abort the Mongo transaction so no documents are saved
+
                 await session.AbortTransactionAsync();
 
-                // 2) Remove the file from disk if we created it
                 if (fileCreated && File.Exists(filePath))
                 {
                     File.Delete(filePath);
                 }
 
-                // Re-throw the exception so the caller knows something went wrong
                 throw;
             }
         }

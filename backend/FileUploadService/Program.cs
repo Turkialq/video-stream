@@ -4,6 +4,8 @@ using Services.RabbitManager;
 using FileUploadService.Models;
 using FileUploadService.Config;
 using FileUploadService.Configuration;
+using Hangfire;
+using Hangfire.Mongo;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -18,6 +20,24 @@ builder.Configuration
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
 builder.Services.Configure<RabbitSettings>(builder.Configuration.GetSection("RabbitSettings"));
 builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("StorageSettings"));
+builder.Services.Configure<HangfireSettings>(builder.Configuration.GetSection("HangfireSettings"));
+
+
+builder.Services.AddHangfire((serviceProvider, config) =>
+{
+    var hangfireSettings = serviceProvider.GetRequiredService<
+        IOptions<HangfireSettings>>().Value;
+
+    var mongoSettings = serviceProvider.GetRequiredService<
+        IOptions<MongoSettings>>().Value;
+
+    config.UseMongoStorage(
+        mongoSettings.ConnectionString, 
+        hangfireSettings.DatabaseName   
+    );
+});
+
+
 
 // --------------------------------------------------
 // 3) Setup MongoDB
