@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "backend", "backend\FileStre
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileUploadService", "backend\FileUploadService\FileUploadService.csproj", "{A6D7C08D-CEA3-F6FC-5153-2A88F3C215AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundJob", "backend\BackgroundJob\BackgroundJob.csproj", "{DBC4457A-9D98-4A00-BA08-48C787FDE1EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{A6D7C08D-CEA3-F6FC-5153-2A88F3C215AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6D7C08D-CEA3-F6FC-5153-2A88F3C215AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6D7C08D-CEA3-F6FC-5153-2A88F3C215AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBC4457A-9D98-4A00-BA08-48C787FDE1EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC4457A-9D98-4A00-BA08-48C787FDE1EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC4457A-9D98-4A00-BA08-48C787FDE1EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC4457A-9D98-4A00-BA08-48C787FDE1EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,6 +42,7 @@ Global
 		{579C0130-D8D5-1376-1B12-C02F93119DFD} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{D19872DF-036F-D8C2-FBA3-45926645C14F} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{A6D7C08D-CEA3-F6FC-5153-2A88F3C215AF} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
+		{DBC4457A-9D98-4A00-BA08-48C787FDE1EE} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F0F9FB45-FACD-4486-8BB5-17FD8CFAFFBB}

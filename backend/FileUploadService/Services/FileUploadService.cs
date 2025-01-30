@@ -87,10 +87,6 @@ namespace FileUploadService.Services
 
                 await session.CommitTransactionAsync();
 
-                BackgroundJob.Enqueue<OutboxPublisher>(publisher =>
-                publisher.ProcessUploadedVideoAsync(videoId )
-                );
-
                 return videoDoc.Id.ToString();
             }
             catch
